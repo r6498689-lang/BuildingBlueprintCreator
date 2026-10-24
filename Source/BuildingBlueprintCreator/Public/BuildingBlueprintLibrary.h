@@ -34,15 +34,6 @@ struct BUILDINGBLUEPRINTCREATOR_API FBuildingBlueprintOptions
 };
 
 USTRUCT(BlueprintType)
-struct BUILDINGBLUEPRINTCREATOR_API FBuildingBlueprintOptimizationOptions
-{
-    GENERATED_BODY()
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Building") bool bUseISM = true;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Building") bool bEnableNanite = false;
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Building") bool bReplaceOriginal = false;
-};
-
-USTRUCT(BlueprintType)
 struct BUILDINGBLUEPRINTCREATOR_API FBuildingBlueprintResult
 {
     GENERATED_BODY()
@@ -100,14 +91,6 @@ class BUILDINGBLUEPRINTCREATOR_API UBuildingBlueprintLibrary : public UBlueprint
 {
     GENERATED_BODY()
 public:
-    static FString GetBuildingOptimizationReason(const UBlueprint* Blueprint);
-
-    UFUNCTION(BlueprintCallable, Category="Editor|Building Blueprint")
-    static FBuildingBlueprintResult OptimizeBuildingBlueprint(UBlueprint* Blueprint, const FString& FolderPath, const FString& AssetName);
-
-    UFUNCTION(BlueprintCallable, Category="Editor|Building Blueprint")
-    static FBuildingBlueprintResult OptimizeBuildingBlueprintWithOptions(UBlueprint* Blueprint, const FString& FolderPath, const FString& AssetName, const FBuildingBlueprintOptimizationOptions& Options);
-
     static bool IsBatchParentActor(const AActor* Actor);
     static FBuildingBlueprintBatchPlan PlanParentBatch(const TArray<AActor*>& Actors);
 

@@ -1,7 +1,6 @@
 #include "BuildingBlueprintLibrary.h"
 #include "BuildingOutlinerVisibility.h"
 #include "BuildingThumbnailRenderer.h"
-#include "BuildingBlueprintAssetMenu.h"
 #include "BuildingBatchResultPanel.h"
 
 #include "ContentBrowserModule.h"
@@ -300,12 +299,6 @@ public:
     virtual void StartupModule() override
     {
 #if WITH_DEV_AUTOMATION_TESTS
-        if (!FParse::Param(FCommandLine::Get(), TEXT("BBCMemoryExperiment")))
-        {
-            FAutomationTestFramework::Get().UnregisterAutomationTest(TEXT("FBBCMemoryProbe"));
-            FAutomationTestFramework::Get().UnregisterAutomationTest(TEXT("FBBCMemoryCacheCompatibility"));
-            FAutomationTestFramework::Get().UnregisterAutomationTest(TEXT("FBBCCacheScene"));
-        }
         // Validation creates fixture assets and switches maps. Never expose
         // these tests to an ordinary user's global Run All operation.
         if (!FParse::Param(FCommandLine::Get(), TEXT("BBCValidation")))
@@ -344,7 +337,6 @@ public:
         LevelEditor.GetAllLevelViewportContextMenuExtenders().Add(Delegate);
         BBCOutliner::Start();
         BBCThumbnails::Start();
-        BBCAssetMenu::Start();
         // Module unload happens after UObject shutdown during a normal editor
         // exit. Release editor registrations while their owners still exist.
         ExitHandle = FCoreDelegates::OnEnginePreExit.AddRaw(this, &FBuildingBlueprintCreatorModule::ReleaseEditorResources);
@@ -360,7 +352,6 @@ private:
     {
         if (bResourcesReleased) return;
         bResourcesReleased = true;
-        BBCAssetMenu::Stop();
         BBCThumbnails::Stop();
         BBCOutliner::Stop();
         if (FModuleManager::Get().IsModuleLoaded("LevelEditor"))

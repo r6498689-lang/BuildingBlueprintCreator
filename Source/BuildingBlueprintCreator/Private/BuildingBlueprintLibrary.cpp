@@ -1,5 +1,4 @@
 #include "BuildingBlueprintLibrary.h"
-#include "BuildingBackupManager.h"
 #include "BuildingOptimizationMemory.h"
 #include "BuildingOutlinerVisibility.h"
 #include "BuildingThumbnailRenderer.h"
@@ -963,7 +962,7 @@ FBuildingBlueprintResult UBuildingBlueprintLibrary::CreateBuildingBlueprint(cons
     return Result;
 }
 
-#include "BuildingAssetReplacement.inl"
-#include "BuildingAssetOptimizer.inl"
+
+
 
 #undef LOCTEXT_NAMESPACE
