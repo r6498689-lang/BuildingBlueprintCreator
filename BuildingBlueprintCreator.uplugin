@@ -1,7 +1,7 @@
 {
   "FileVersion": 3,
-  "Version": 10903,
-  "VersionName": "1.9.3",
+  "Version": 10905,
+  "VersionName": "1.9.5",
   "FriendlyName": "Building Blueprint Creator",
   "Description": "Create reusable building Blueprints from selected level actors.",
   "Category": "Editor",

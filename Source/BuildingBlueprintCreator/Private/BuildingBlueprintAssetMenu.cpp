@@ -52,7 +52,9 @@ static TSharedRef<SWindow> MakeBackupsWindow()
     {
         Bytes += R.Bytes;
         Rows->AddSlot().AutoHeight().Padding(0, 0, 0, 14)
-        [ SNew(SCheckBox).OnCheckStateChanged_Lambda([Selected, Directory = R.Directory](ECheckBoxState S)
+        [ SNew(SCheckBox).IsChecked_Lambda([Selected, Directory = R.Directory]
+            { return Selected->Contains(Directory) ? ECheckBoxState::Checked : ECheckBoxState::Unchecked; })
+            .OnCheckStateChanged_Lambda([Selected, Directory = R.Directory](ECheckBoxState S)
             { if (S == ECheckBoxState::Checked) Selected->Add(Directory); else Selected->Remove(Directory); })
             [ SNew(STextBlock).WrapTextAt(730).ToolTipText(FText::FromString(R.Directory)).Text(FText::FromString(R.AssetPath + TEXT("\n") + R.Created
                 + FString::Printf(TEXT("  %.2f MB\n"), R.Bytes / 1048576.0) + R.Directory)) ] ];
@@ -64,6 +66,19 @@ static TSharedRef<SWindow> MakeBackupsWindow()
         [ SNew(SVerticalBox)
             + SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 12)
             [ SNew(STextBlock).AutoWrapText(true).Text(FText::FromString(FString::Printf(TEXT("当前工程的插件备份：%d 项，共 %.2f MB。\n勾选要删除的备份；默认不选。删除后无法再用这些备份恢复蓝图。"), Records.Num(), Bytes / 1048576.0))) ]
+            + SVerticalBox::Slot().AutoHeight().Padding(0, 0, 0, 12)
+            [ SNew(SHorizontalBox)
+                + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 10, 0)
+                [ SNew(SButton).Text(LOCTEXT("SelectAllBackups", "全选"))
+                    .IsEnabled(Records.Num() > 0)
+                    .OnClicked_Lambda([Selected, Records] { for (const auto& R : Records) Selected->Add(R.Directory); return FReply::Handled(); }) ]
+                + SHorizontalBox::Slot().AutoWidth().Padding(0, 0, 14, 0)
+                [ SNew(SButton).Text(LOCTEXT("ClearBackupSelection", "取消全选"))
+                    .IsEnabled_Lambda([Selected] { return !Selected->IsEmpty(); })
+                    .OnClicked_Lambda([Selected] { Selected->Reset(); return FReply::Handled(); }) ]
+                + SHorizontalBox::Slot().AutoWidth().VAlign(VAlign_Center)
+                [ SNew(STextBlock).Text_Lambda([Selected, Count = Records.Num()]
+                    { return FText::FromString(FString::Printf(TEXT("已选 %d / %d 项"), Selected->Num(), Count)); }) ] ]
             + SVerticalBox::Slot().FillHeight(1)
             [ SNew(SScrollBox) + SScrollBox::Slot()[Rows] ]
             + SVerticalBox::Slot().AutoHeight().Padding(0, 14, 0, 0).HAlign(HAlign_Right)

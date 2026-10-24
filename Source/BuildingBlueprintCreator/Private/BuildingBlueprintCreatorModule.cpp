@@ -300,6 +300,12 @@ public:
     virtual void StartupModule() override
     {
 #if WITH_DEV_AUTOMATION_TESTS
+        if (!FParse::Param(FCommandLine::Get(), TEXT("BBCMemoryExperiment")))
+        {
+            FAutomationTestFramework::Get().UnregisterAutomationTest(TEXT("FBBCMemoryProbe"));
+            FAutomationTestFramework::Get().UnregisterAutomationTest(TEXT("FBBCMemoryCacheCompatibility"));
+            FAutomationTestFramework::Get().UnregisterAutomationTest(TEXT("FBBCCacheScene"));
+        }
         // Validation creates fixture assets and switches maps. Never expose
         // these tests to an ordinary user's global Run All operation.
         if (!FParse::Param(FCommandLine::Get(), TEXT("BBCValidation")))

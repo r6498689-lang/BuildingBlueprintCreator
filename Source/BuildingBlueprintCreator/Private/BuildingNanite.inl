@@ -53,6 +53,24 @@ static bool EnableBuildingNanite(const TArray<AActor*>& Actors, FBuildingBluepri
         FSaveErrors SaveErrors; Args.Error = &SaveErrors;
         const bool bSaved = UPackage::SavePackage(Mesh->GetOutermost(), Mesh, *File, Args);
         if (!bSaved) Error += Mesh->GetPathName() + TEXT("：保存失败。\n") + FString::Join(SaveErrors.Lines, TEXT("\n"));
+        if (bSaved)
+        {
+            auto* Editors = GEditor->GetEditorSubsystem<UAssetEditorSubsystem>();
+            // Drop only reconstructible CPU source-description caches. Keep bulk,
+            // render/collision data, asset references and transaction history.
+            // Multi-LOD/HiRes and open editors are outside the verified scope.
+            const bool Safe = !Mesh->IsCompiling() && !Mesh->GetOutermost()->IsDirty()
+                && Mesh->GetNumSourceModels() == 1 && !Mesh->IsHiResMeshDescriptionValid()
+                && Editors && !Editors->FindEditorForAsset(Mesh, false);
+            const FString Id=FGuid::NewGuid().ToString(EGuidFormats::Digits);
+            if (Safe)
+            {
+                BBCMemory::Sample(Id, Mesh->GetPathName(), TEXT("BeforeMeshDescriptionClear"));
+                Mesh->ClearMeshDescriptions();
+                BBCMemory::Sample(Id, Mesh->GetPathName(), TEXT("AfterMeshDescriptionClear"));
+            }
+            else BBCMemory::Sample(Id, Mesh->GetPathName(), TEXT("MeshDescriptionClearSkipped"));
+        }
         return bSaved;
     };
     for (UStaticMesh* Mesh : Pending)

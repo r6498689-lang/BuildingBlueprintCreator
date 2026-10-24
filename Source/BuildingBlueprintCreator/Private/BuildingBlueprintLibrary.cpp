@@ -3,6 +3,7 @@
 #include "BuildingOptimizationMemory.h"
 #include "BuildingOutlinerVisibility.h"
 #include "BuildingThumbnailRenderer.h"
+#include "Subsystems/AssetEditorSubsystem.h"
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Components/ChildActorComponent.h"
