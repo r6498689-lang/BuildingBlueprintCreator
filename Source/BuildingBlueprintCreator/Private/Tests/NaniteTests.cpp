@@ -34,7 +34,7 @@ static UStaticMesh* MeshAsset(const FString& Folder,const TCHAR* Name)
     UStaticMesh* Mesh=DuplicateObject<UStaticMesh>(LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube")),CreatePackage(*(Folder/Name)),FName(Name));
     Mesh->SetFlags(RF_Public|RF_Standalone|RF_Transactional);
     Mesh->GetStaticMaterials().Reset();Mesh->GetStaticMaterials().Add(FStaticMaterial(LoadObject<UMaterialInterface>(nullptr,TEXT("/Engine/EngineMaterials/DefaultMaterial.DefaultMaterial"))));
-    Mesh->NaniteSettings.bEnabled=false;Mesh->PostEditChange();TArray<UStaticMesh*> One{Mesh};FStaticMeshCompilingManager::Get().FinishCompilation(One);Save(Mesh);return Mesh;
+    Mesh->GetNaniteSettings().bEnabled=false;Mesh->PostEditChange();TArray<UStaticMesh*> One{Mesh};FStaticMeshCompilingManager::Get().FinishCompilation(One);Save(Mesh);return Mesh;
 }
 static AStaticMeshActor* Place(UWorld* World,UStaticMesh* Mesh,FVector Position,AActor* Parent=nullptr)
 {
@@ -49,7 +49,7 @@ bool FBBCNaniteTest::RunTest(const FString& Parameters)
 {
     using namespace BBCNaniteTest;auto* W=FAutomationEditorCommonUtils::CreateNewMap();
     const FString Folder=TEXT("/Game/BBCNanite_")+FGuid::NewGuid().ToString(EGuidFormats::Digits).Left(8);
-    auto* EngineCube=LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube"));const bool EngineEnabled=EngineCube->NaniteSettings.bEnabled;
+    auto* EngineCube=LoadObject<UStaticMesh>(nullptr,TEXT("/Engine/BasicShapes/Cube.Cube"));const bool EngineEnabled=EngineCube->GetNaniteSettings().bEnabled;
     const bool EngineDirty=EngineCube->GetOutermost()->IsDirty();
     auto* Mesh=MeshAsset(Folder,TEXT("SharedMesh"));auto* ReadOnlyMesh=MeshAsset(Folder,TEXT("ReadOnlyMesh"));
     const FString ReadOnlyFile=FPackageName::LongPackageNameToFilename(ReadOnlyMesh->GetOutermost()->GetName(),FPackageName::GetAssetPackageExtension());
@@ -59,11 +59,11 @@ bool FBBCNaniteTest::RunTest(const FString& Parameters)
     auto* Outside=Place(W,Mesh,FVector(3000,0,100));auto* Blocked=Place(W,ReadOnlyMesh,FVector(6000,0,100));
     FBuildingBlueprintOptions O;O.FolderPath=Folder;O.AssetName=TEXT("NoNanite");
     auto Plain=UBuildingBlueprintLibrary::CreateBuildingBlueprint({A},O);
-    TestTrue(TEXT("Ordinary creation succeeds"),Plain.bSuccess);TestFalse(TEXT("Unselected Nanite leaves asset setting unchanged"),Mesh->NaniteSettings.bEnabled);
+    TestTrue(TEXT("Ordinary creation succeeds"),Plain.bSuccess);TestFalse(TEXT("Unselected Nanite leaves asset setting unchanged"),Mesh->GetNaniteSettings().bEnabled);
     O.bEnableNanite=true;O.AssetName=TEXT("Blocked");FPlatformFileManager::Get().GetPlatformFile().SetReadOnly(*ReadOnlyFile,true);
     auto Fail=UBuildingBlueprintLibrary::CreateBuildingBlueprint({A,Blocked},O);
     TestFalse(TEXT("Read-only project asset is refused before changes"),Fail.bSuccess);
-    TestFalse(TEXT("Earlier writable candidate is unchanged by failed preflight"),Mesh->NaniteSettings.bEnabled);
+    TestFalse(TEXT("Earlier writable candidate is unchanged by failed preflight"),Mesh->GetNaniteSettings().bEnabled);
     TestFalse(TEXT("No blueprint created for failed Nanite preflight"),FPackageName::DoesPackageExist(Folder/TEXT("Blocked")));
     FPlatformFileManager::Get().GetPlatformFile().SetReadOnly(*ReadOnlyFile,false);
     auto* Nested=LoadObject<UBlueprint>(nullptr,*Plain.AssetObjectPath);
@@ -78,18 +78,18 @@ bool FBBCNaniteTest::RunTest(const FString& Parameters)
     TestTrue(TEXT("Nanite processing recorded"),Created.bNaniteProcessed);
     TestEqual(TEXT("Shared nested/ISM/ordinary mesh enabled only once"),Created.NaniteEnabledCount,1);
     TestEqual(TEXT("No originally enabled project mesh"),Created.NaniteAlreadyEnabledCount,0);
-    TestTrue(TEXT("Original project asset now enabled"),Mesh->NaniteSettings.bEnabled);
+    TestTrue(TEXT("Original project asset now enabled"),Mesh->GetNaniteSettings().bEnabled);
     TestTrue(TEXT("Nanite geometry built, not just a flag"),Mesh->HasValidNaniteData());
     TestFalse(TEXT("Original project asset saved clean"),Mesh->GetOutermost()->IsDirty());
-    TestTrue(TEXT("Other references see original mesh setting"),Outside->GetStaticMeshComponent()->GetStaticMesh()->NaniteSettings.bEnabled);
+    TestTrue(TEXT("Other references see original mesh setting"),Outside->GetStaticMeshComponent()->GetStaticMesh()->GetNaniteSettings().bEnabled);
     TestTrue(TEXT("Original actors remain"),IsValid(A)&&IsValid(Outside));
-    TestEqual(TEXT("Engine mesh setting untouched"),EngineCube->NaniteSettings.bEnabled,EngineEnabled);
+    TestEqual(TEXT("Engine mesh setting untouched"),EngineCube->GetNaniteSettings().bEnabled,EngineEnabled);
     TestEqual(TEXT("Engine mesh dirty state untouched"),EngineCube->GetOutermost()->IsDirty(),EngineDirty);
     TestTrue(TEXT("Asset Nanite setting has independent undo"),GEditor->UndoTransaction());
-    TestFalse(TEXT("Undo restores original Nanite flag"),Mesh->NaniteSettings.bEnabled);
+    TestFalse(TEXT("Undo restores original Nanite flag"),Mesh->GetNaniteSettings().bEnabled);
     TArray<UStaticMesh*> One{Mesh};FStaticMeshCompilingManager::Get().FinishCompilation(One);
     TestTrue(TEXT("Nanite redo works"),GEditor->RedoTransaction());FStaticMeshCompilingManager::Get().FinishCompilation(One);
-    TestTrue(TEXT("Redo restores enabled Nanite"),Mesh->NaniteSettings.bEnabled);Save(Mesh);
+    TestTrue(TEXT("Redo restores enabled Nanite"),Mesh->GetNaniteSettings().bEnabled);Save(Mesh);
     O.AssetName=TEXT("AlreadyEnabled");O.bIncludeAllAttachedChildren=false;
     auto Again=UBuildingBlueprintLibrary::CreateBuildingBlueprint({A},O);
     TestTrue(TEXT("Already enabled asset can create again"),Again.bSuccess);
@@ -105,7 +105,7 @@ bool FBBCNaniteReloadTest::RunTest(const FString& Parameters)
     if(!TestEqual(TEXT("Nanite roundtrip manifest saved"),Lines.Num(),2))return false;
     auto* Mesh=LoadObject<UStaticMesh>(nullptr,*Lines[0]);if(!TestNotNull(TEXT("Modified original mesh reloads"),Mesh))return false;
     TArray<UStaticMesh*> One{Mesh};FStaticMeshCompilingManager::Get().FinishCompilation(One);
-    TestTrue(TEXT("Enabled Nanite setting saved to disk"),Mesh->NaniteSettings.bEnabled);TestTrue(TEXT("Valid Nanite resources survive reload"),Mesh->HasValidNaniteData());
+    TestTrue(TEXT("Enabled Nanite setting saved to disk"),Mesh->GetNaniteSettings().bEnabled);TestTrue(TEXT("Valid Nanite resources survive reload"),Mesh->HasValidNaniteData());
     auto* BP=LoadObject<UBlueprint>(nullptr,*Lines[1]);if(!TestNotNull(TEXT("Nanite building reloads"),BP))return false;
     auto* World=FAutomationEditorCommonUtils::CreateNewMap();auto* Actor=World->SpawnActor<AActor>(BP->GeneratedClass);
     TInlineComponentArray<UInstancedStaticMeshComponent*> ISMs(Actor);TestTrue(TEXT("Created building uses real ISM"),ISMs.Num()>0&&ISMs[0]->GetClass()==UInstancedStaticMeshComponent::StaticClass());

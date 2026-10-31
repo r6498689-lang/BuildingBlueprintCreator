@@ -1,19 +1,26 @@
 # Actor 转蓝图 · 建筑蓝图批量创建器
 
+## 引擎版本
+
+- [UE 5.6：main 分支](https://github.com/r6498689-lang/BuildingBlueprintCreator/tree/main)
+- [UE 5.8：ue5.8 分支](https://github.com/r6498689-lang/BuildingBlueprintCreator/tree/ue5.8)
+
+同一插件的引擎版本保留在同一仓库。请分别下载匹配版本，避免混装。
+
 把 Unreal Engine 关卡中的多个 Actor 保存为可重复使用的建筑蓝图，保留模型、材质与空间关系。支持单个建筑创建，以及按父级分别批量创建。
 
-**版本：2.0.0 · UE 5.6.1 · Windows 编辑器**
+**版本：2.0.0 · UE 5.8.4 · Windows 编辑器**
 
 ## 两个独立插件
 
-本仓库只提供 **创建蓝图**。对已有蓝图进行 ISM/Nanite 优化、备份和批量处理的功能已迁移到独立的 [BuildingBlueprintOptimizer 仓库](https://github.com/r6498689-lang/BuildingBlueprintOptimizer)。
+本仓库只提供 **创建蓝图**。对已有蓝图进行 ISM/Nanite 优化、备份和批量处理的功能已迁移到独立的 [BuildingBlueprintOptimizer 仓库](https://github.com/r6498689-lang/BuildingBlueprintOptimizer/tree/ue5.8)。
 
 两个插件不互相依赖，可以分别安装，也可以同时安装。创建蓝图时的 ISM/Nanite 选项仍可使用；这里不再注册“优化建筑蓝图…”入口，也不再公开优化已有蓝图的接口。
 
 ## 安装
 
 1. 下载仓库源码，将根目录内容放进 `<项目>/Plugins/BuildingBlueprintCreator/`，该目录下应直接有 `BuildingBlueprintCreator.uplugin` 和 `Source`。
-2. 使用 UE 5.6.1 的 C++ 编译环境编译 Editor 目标。插件依赖引擎提供的 Datasmith Content；不需要安装优化插件。
+2. 使用 UE 5.8.4 的 C++ 编译环境编译 Editor 目标。插件依赖引擎提供的 Datasmith Content；不需要安装优化插件。
 3. 打开工程并确认启用 **Building Blueprint Creator**。
 
 本仓库不提供预编译 DLL、UE 引擎源码或项目素材。其他引擎版本需要自行编译验证。
@@ -43,3 +50,6 @@
 旧提交属于历史合并版。新下载和安装请使用 main 分支的 2.0.0 源码，避免将旧版二进制与新版源码混装。
 
 验证记录见 [拆分验证说明](docs/使用说明与版本记录.md)。
+
+
+UE5.8 适配范围与验证记录见 [UE5.8 适配说明](docs/UE5.8适配说明.md)。
