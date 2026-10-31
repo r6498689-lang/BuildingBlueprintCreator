@@ -1,5 +1,16 @@
 # Actor 转蓝图 · 建筑蓝图批量创建器
 
+## 引擎版本下载入口
+
+同一插件的版本保留在本仓库中，请使用与工程对应的分支：
+
+| 引擎 | 分支 | 下载 |
+|---|---|---|
+| UE 5.6 | main | [源码 ZIP](https://github.com/r6498689-lang/BuildingBlueprintCreator/archive/refs/heads/main.zip) |
+| UE 5.8（已在5.8.4编译） | [ue5.8](https://github.com/r6498689-lang/BuildingBlueprintCreator/tree/ue5.8) | [源码 ZIP](https://github.com/r6498689-lang/BuildingBlueprintCreator/archive/refs/heads/ue5.8.zip) |
+
+下面是 main 分支的 UE5.6 使用说明。UE5.8 的适配与验证范围见 [UE5.8 适配说明](https://github.com/r6498689-lang/BuildingBlueprintCreator/blob/ue5.8/docs/UE5.8%E9%80%82%E9%85%8D%E8%AF%B4%E6%98%8E.md)。
+
 把 Unreal Engine 关卡中的多个 Actor 保存为可重复使用的建筑蓝图，保留模型、材质与空间关系。支持单个建筑创建，以及按父级分别批量创建。
 
 **版本：2.0.0 · UE 5.6.1 · Windows 编辑器**
